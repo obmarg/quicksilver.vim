@@ -4,6 +4,11 @@ Quicksilver
 Quicksilver is a VIM plugin whose purpose is to quicken the process of
 opening files from inside VIM.
 
+The original version of this plugin can be found at
+https://github.com/Bogdanp/quicksilver.vim
+
+This is a fork to support python 2.5 
+
 # Preview
 
 [Video](http://www.youtube.com/watch?v=RDsey4YqpHs)
@@ -60,6 +65,6 @@ have the extension `.md` in the CWD.
 # Requirements
 
 * VIM 7.0+ compiled with +python
-* Python 2.6+
+* Python 2.5+
 
 [1]: http://github.com/tpope/vim-pathogen

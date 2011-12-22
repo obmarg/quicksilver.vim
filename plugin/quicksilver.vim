@@ -46,7 +46,7 @@ from glob import glob
 class Quicksilver(object):
     def __init__(self, match_fn='normal'):
         self.set_match_fn(match_fn)
-        self.cwd = '{0}/'.format(os.getcwd())
+        self.cwd = '%s/' % os.getcwd()
         self.ignore_case = True
         self.match_index = 0
 
@@ -98,7 +98,7 @@ class Quicksilver(object):
     def get_files(self):
         for f in os.listdir(self.cwd):
             path = os.path.join(self.cwd, f)
-            yield '{0}/'.format(f) if os.path.isdir(path) else f
+            yield '%s/' % f if os.path.isdir(path) else f
 
     def index_files(self, files):
         """Returns a list of files with the item at index
@@ -149,9 +149,7 @@ class Quicksilver(object):
         self.update()
 
     def close_buffer(self):
-        vim.command('{0} wincmd w'.format(
-            vim.eval('bufwinnr("__Quicksilver__")')
-        ))
+        vim.command('%s wincmd w' % vim.eval('bufwinnr("__Quicksilver__")') )
         vim.command('bd!')
         vim.command('exe g:QSRestoreWindows')
         vim.command('unlet g:QSRestoreWindows')
@@ -179,7 +177,7 @@ class Quicksilver(object):
 
     def update_cursor(self):
         vim.command('normal gg')
-        vim.command('normal {0}|'.format(self.get_cursor_location()))
+        vim.command('normal %s|' % self.get_cursor_location() )
         vim.command('startinsert')
 
     def update(self, c='', cmi=True):
@@ -187,7 +185,7 @@ class Quicksilver(object):
         self.pattern += c
         files_string = ' | '.join(f for f in self.match_files())
         vim.command('normal ggdG')
-        vim.current.line = '{0}{1} {{{2}}}'.format(
+        vim.current.line = '%s%s {%s}' % (
             self.cwd, self.pattern, files_string
         )
         self.update_cursor()
@@ -212,7 +210,7 @@ class Quicksilver(object):
     def open_list(self, paths):
         self.close_buffer()
         for path in paths:
-            vim.command('edit {0}'.format(path))
+            vim.command('edit %s' % path )
 
     def open_dir(self, path):
         self.cwd = path
@@ -221,7 +219,7 @@ class Quicksilver(object):
 
     def open_file(self, path):
         self.close_buffer()
-        vim.command('edit {0}'.format(path))
+        vim.command('edit %s' % path)
 
     def open(self):
         path = self.build_path()
