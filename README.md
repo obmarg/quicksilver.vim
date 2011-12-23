@@ -7,7 +7,8 @@ opening files from inside VIM.
 The original version of this plugin can be found at
 https://github.com/Bogdanp/quicksilver.vim
 
-This is a fork to support python 2.5 
+This is a fork by Grambo to support python 2.5
+This fork also supports automatic filtering out of certain files from the list
 
 # Preview
 
@@ -18,6 +19,15 @@ This is a fork to support python 2.5
 # Installation
 
 Use [pathogen][1] and clone this repo into your ~/.vim/bundle directory.
+
+# Settings
+
+The `g:QSFilter` setting enables filtering out of certain files from 
+the quicksilver list.  It matches based on simple filepattern matching, 
+with entries seperated by a semi-colon.
+
+For example, to exclude `.pyc` and `.o` files:
+```let g:QSFilter="*.pyc;*.o"```
 
 # Usage
 

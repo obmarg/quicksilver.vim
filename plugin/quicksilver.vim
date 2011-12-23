@@ -35,13 +35,49 @@ if exists("g:loaded_quicksilver") || !has("python") || &cp
     finish
 endif
 let g:loaded_quicksilver = 1
+let g:QSFilter = ""
 "}}}
 "{{{ Python code
 python <<EOF
+'''
+This fork of quicksilver has an additional option added by Grambo
+
+g:QSFilter
+--------------------
+This allows the user to filter out files from the quicksilver list based on 
+filepatterns.  Entries are seperated by ;
+
+Example:
+    let g:QSFilter="*.pyc;*.o"
+
+'''
 import os
 import vim
+import fnmatch
 
 from glob import glob
+
+def Filter(f):
+    ''' 
+    Decorator for further filtering quicksilvers file list
+    Should be applied to all filter functions defined in Quicksilver
+    '''
+
+    def func( self, filename ):
+        ''' 
+        Calls function, then performs further filtering 
+        against filter patterns
+        @return: True if file should be included in list
+        '''
+        if f( self, filename ):
+        	if len( self.filterList ) == 0:
+        		return True
+        	return not any( 
+        	    fnmatch.fnmatch( filename, p ) for p in self.filterList 
+        	    )
+        return False
+    return func
+
 
 class Quicksilver(object):
     def __init__(self, match_fn='normal'):
@@ -49,6 +85,7 @@ class Quicksilver(object):
         self.cwd = '%s/' % os.getcwd()
         self.ignore_case = True
         self.match_index = 0
+        self.update_filter_list()
 
     def _cmp_files(self, x, y):
         "Files not starting with '.' come first."
@@ -70,10 +107,12 @@ class Quicksilver(object):
             return pattern.lower(), filename.lower()
         return pattern, filename
 
+    @Filter
     def fuzzy_match(self, filename):
         pattern, filename = self.normalize_case(filename)
         return set(pattern).issubset(set(filename))
 
+    @Filter
     def normal_match(self, filename):
         pattern, filename = self.normalize_case(filename)
         return pattern in filename
@@ -137,6 +176,7 @@ class Quicksilver(object):
     def clear(self):
         self.pattern = ''
         self.update()
+        self.update_filter_list()
 
     def clear_character(self):
         self.pattern = self.pattern[:-1]
@@ -227,6 +267,11 @@ class Quicksilver(object):
         if isinstance(path, list): self.open_list(path)
         elif os.path.isdir(path): self.open_dir(path)
         else: self.open_file(path)
+
+    def update_filter_list( self ):
+        ''' Reads filter list setting, and splits to list '''
+        self.filterList = vim.eval("g:QSFilter").split(';')
+
 EOF
 "}}}
 "{{{ Public interface
