@@ -35,7 +35,9 @@ if exists("g:loaded_quicksilver") || !has("python") || &cp
     finish
 endif
 let g:loaded_quicksilver = 1
-let g:QSFilter = ""
+if !exists("g:QSFilter")
+    let g:QSFilter = ""
+endif
 "}}}
 "{{{ Python code
 python <<EOF
