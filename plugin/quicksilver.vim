@@ -38,11 +38,14 @@ let g:loaded_quicksilver = 1
 if !exists("g:QSFilter")
     let g:QSFilter = ""
 endif
+if !exists("g:QSFilterByMime")
+	let g:QSFilterByMime = 0
+endif
 "}}}
 "{{{ Python code
 python <<EOF
 '''
-This fork of quicksilver has an additional option added by Grambo
+This fork of quicksilver has additional options added by Grambo
 
 g:QSFilter
 --------------------
@@ -52,14 +55,47 @@ filepatterns.  Entries are seperated by ;
 Example:
     let g:QSFilter="*.pyc;*.o"
 
+g:QSFilterByMime
+-------------------
+This allows the user to filter out files from the quicksilver list based on
+mimetype.  Only files with a text/* type (or directories) will be displayed
+
+To Enable:
+    let g:QSFilterByMime = 1
+
 '''
 import os
 import vim
 import fnmatch
+import mimetypes
 
 from glob import glob
 
-def Filter(f):
+def MimeTypeFilter(f):
+    '''
+    Decorator for further filtering quicksilvers file list
+    Should be applied to all filter functions defined in Quicksilver
+    '''
+
+    def func( self, filename ):
+        '''
+        Calls original function, then optionally
+        filters out non-text mime types
+        '''
+        if f( self, filename ):
+            if not self.filterByMime:
+                return True
+            if filename[-1] in [ '/', '\\' ]:
+                # Don't filter out directories
+                return True
+            type, encoding = mimetypes.guess_type( filename )
+            if not type:
+                return False
+            return type.startswith( 'text/' )
+        return False
+    return func
+
+def ExcludeFilenameFilter(f):
     ''' 
     Decorator for further filtering quicksilvers file list
     Should be applied to all filter functions defined in Quicksilver
@@ -87,7 +123,7 @@ class Quicksilver(object):
         self.cwd = '%s/' % os.getcwd()
         self.ignore_case = True
         self.match_index = 0
-        self.update_filter_list()
+        self.update_filter_options()
 
     def _cmp_files(self, x, y):
         "Files not starting with '.' come first."
@@ -109,12 +145,14 @@ class Quicksilver(object):
             return pattern.lower(), filename.lower()
         return pattern, filename
 
-    @Filter
+    @MimeTypeFilter
+    @ExcludeFilenameFilter
     def fuzzy_match(self, filename):
         pattern, filename = self.normalize_case(filename)
         return set(pattern).issubset(set(filename))
 
-    @Filter
+    @MimeTypeFilter
+    @ExcludeFilenameFilter
     def normal_match(self, filename):
         pattern, filename = self.normalize_case(filename)
         return pattern in filename
@@ -178,7 +216,7 @@ class Quicksilver(object):
     def clear(self):
         self.pattern = ''
         self.update()
-        self.update_filter_list()
+        self.update_filter_options()
 
     def clear_character(self):
         self.pattern = self.pattern[:-1]
@@ -270,9 +308,10 @@ class Quicksilver(object):
         elif os.path.isdir(path): self.open_dir(path)
         else: self.open_file(path)
 
-    def update_filter_list( self ):
+    def update_filter_options( self ):
         ''' Reads filter list setting, and splits to list '''
         self.filterList = vim.eval("g:QSFilter").split(';')
+        self.filterByMime = vim.eval("g:QSFilterByMime") == "1"
 
 EOF
 "}}}

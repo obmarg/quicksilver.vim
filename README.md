@@ -29,6 +29,15 @@ with entries seperated by a semi-colon.
 For example, to exclude `.pyc` and `.o` files:
 ```let g:QSFilter="*.pyc;*.o"```
 
+The `g:QSFilterByMime` option allows more automated filtering of files.
+It filters out files from the quicksilver list based on their mimetype.  
+Only files with a text/* type (or directories) will be displayed.
+This option is not perfect, as it will currently also filter out files
+for which the mime type can not be detected, which may also be text
+
+To Enable:
+```let g:QSFilterByMime = 1```
+
 # Usage
 
 By default, `\q` will activate the Quicksilver buffer and switch to
