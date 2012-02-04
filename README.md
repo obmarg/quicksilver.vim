@@ -7,8 +7,11 @@ opening files from inside VIM.
 The original version of this plugin can be found at
 https://github.com/Bogdanp/quicksilver.vim
 
-This is a fork by Grambo to support python 2.5
-This fork also supports automatic filtering out of certain files from the list
+This is a fork by Grambo which:
+- Adds support for running under python 2.5
+- Adds support for more than basic functionality on windows
+- Allows automatic filtering out of certain files from the list (see Settings)
+- Fixes a bug with entering directories with spaces in them
 
 # Preview
 

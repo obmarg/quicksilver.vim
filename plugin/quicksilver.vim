@@ -266,8 +266,11 @@ class Quicksilver(object):
             path.split( self.path_sep )[:-3]
             ) + self.path_sep
 
-    def rel(self, path):
-        return self.sanitize_path(os.path.join(self.cwd, path))
+    def rel(self, path, sanitize=True):
+        rv = os.path.join(self.cwd, path)
+        if sanitize:
+        	rv = self.sanitize_path(rv)
+        return rv 
 
     def sanitize_path(self, path):
         if self.path_sep == '\\':
@@ -294,9 +297,9 @@ class Quicksilver(object):
         )
         self.update_cursor()
 
-    def build_path(self):
+    def build_path(self, sanitize):
         try:
-            path = self.rel(self.get_matched_file())
+            path = self.rel(self.get_matched_file(), sanitize)
             if self.get_matched_file() == self.updir_item:
                 return self.get_up_dir(path)
         except IndexError:
@@ -326,11 +329,14 @@ class Quicksilver(object):
         vim.command('edit %s' % path)
 
     def open(self):
-        path = self.build_path()
+        # Get the unsanitized path for use by python
+        path = self.build_path( False )
         self.reset_match_index()
+        if not os.path.isdir(path):
+        	raise Exception( path )
         if isinstance(path, list): self.open_list(path)
         elif os.path.isdir(path): self.open_dir(path)
-        else: self.open_file(path)
+        else: self.open_file( self.build_path( True ) )
 
     def update_filter_options( self ):
         ''' Reads filter list setting, and splits to list '''
