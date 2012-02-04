@@ -332,8 +332,6 @@ class Quicksilver(object):
         # Get the unsanitized path for use by python
         path = self.build_path( False )
         self.reset_match_index()
-        if not os.path.isdir(path):
-        	raise Exception( path )
         if isinstance(path, list): self.open_list(path)
         elif os.path.isdir(path): self.open_dir(path)
         else: self.open_file( self.build_path( True ) )
