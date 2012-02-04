@@ -120,10 +120,28 @@ def ExcludeFilenameFilter(f):
 class Quicksilver(object):
     def __init__(self, match_fn='normal'):
         self.set_match_fn(match_fn)
-        self.cwd = '%s/' % os.getcwd()
+        self.path_sep = os.path.normpath( '/' )
+        self.updir_item = '..' + self.path_sep
+        self.cwd = self._make_folder_path( os.getcwd() )
         self.ignore_case = True
         self.match_index = 0
         self.update_filter_options()
+
+    def _make_folder_path(self, path):
+        '''
+        Appends the appropriate slash onto a path
+        '''
+        return '%s%s' % ( path, self.path_sep )
+
+    def _is_root_path(self, path):
+        '''
+        Checks whether a path is the root path
+        '''
+        if self.path_sep == '/' and path == '/':
+        	return True
+        if self.path_sep == '\\' and len( path ) == 3:
+        	return True
+        return False
 
     def _cmp_files(self, x, y):
         "Files not starting with '.' come first."
@@ -177,7 +195,7 @@ class Quicksilver(object):
     def get_files(self):
         for f in os.listdir(self.cwd):
             path = os.path.join(self.cwd, f)
-            yield '%s/' % f if os.path.isdir(path) else f
+            yield self._make_folder_path( f ) if os.path.isdir(path) else f
 
     def index_files(self, files):
         """Returns a list of files with the item at index
@@ -206,8 +224,8 @@ class Quicksilver(object):
     def match_files(self):
         files = sorted([f for f in self.get_files() if self.match_fn(f)],
                        cmp=self._cmp_files)
-        if not self.pattern and self.cwd != '/':
-            files.insert(0, '../')
+        if not self.pattern and not self._is_root_path( self.cwd ):
+            files.insert(0, self.updir_item )
         return self.index_files(files)
 
     def get_matched_file(self):
@@ -224,7 +242,7 @@ class Quicksilver(object):
 
     def clear_pattern(self):
         if not self.pattern:
-            self.cwd = self.get_up_dir(self.cwd + '/')
+            self.cwd = self.get_up_dir( self._make_folder_path( self.cwd ) )
         self.pattern = ''
         self.update()
 
@@ -244,7 +262,9 @@ class Quicksilver(object):
 
     def get_up_dir(self, path):
         self.reset_match_index()
-        return '/'.join(path.split('/')[:-3]) + '/'
+        return self.path_sep.join(
+            path.split( self.path_sep )[:-3]
+            ) + self.path_sep
 
     def rel(self, path):
         return self.sanitize_path(os.path.join(self.cwd, path))
@@ -273,11 +293,11 @@ class Quicksilver(object):
     def build_path(self):
         try:
             path = self.rel(self.get_matched_file())
-            if self.get_matched_file() == '../':
+            if self.get_matched_file() == self.updir_item:
                 return self.get_up_dir(path)
         except IndexError:
             path = self.rel(self.pattern)
-            if self.pattern.endswith('/'): os.mkdir(path)
+            if self.pattern.endswith(self.path_sep): os.mkdir(path)
             if self.pattern.startswith('*')\
             or self.pattern.endswith('*'):
                 return self.glob_paths()
