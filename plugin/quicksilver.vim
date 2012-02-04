@@ -270,7 +270,11 @@ class Quicksilver(object):
         return self.sanitize_path(os.path.join(self.cwd, path))
 
     def sanitize_path(self, path):
-        return path.replace(' ', '\ ')
+        if self.path_sep == '\\':
+            # Don't sanitize on windows, paths can have spaces
+        	return path
+        else:
+            return path.replace(' ', '\ ')
 
     def get_cursor_location(self):
         return len(self.rel(self.pattern)) + 1
